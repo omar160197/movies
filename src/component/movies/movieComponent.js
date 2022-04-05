@@ -3,17 +3,22 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import PagenationComponent from "../pagination/paginationComponent";
 import SearchComponent from "../search/searchComponent";
+import { useDispatch, useSelector } from "react-redux";
+import { setCounter } from "../../store/acction/counter";
+import { setItems } from "../../store/acction/items";
+
 
 export default function MovieComponent() {
   const [cardMovies, setCardMovies] = useState([]);
   const [filtered, setFilterd] = React.useState(cardMovies);
+  
 
-const [pageNum,setPageNum]=React.useState(1);
+  const counterFromStore = useSelector((state) => state.cart.counter);
+  const itemsFromStore = useSelector((state) => state.cart.items);
+  const pageNumberFromStore =useSelector((state)=>state.cart.pageNumber);
 
-  const changePage=(num)=>{
-   console.log(num);
-setPageNum(num);
-  }
+  const dispatch = useDispatch();
+
 
   const searchTable = (keyword) => {
     setFilterd(
@@ -23,24 +28,25 @@ setPageNum(num);
     );
   };
 
-  useEffect(() => {
+
+  useEffect(() => { 
     axios
       .get(
-        `https://api.themoviedb.org/3/movie/popular?api_key=edd8bc035ccbe239e18b997fcf30f067&page=${pageNum}`
+        `https://api.themoviedb.org/3/movie/popular?api_key=edd8bc035ccbe239e18b997fcf30f067&page=${pageNumberFromStore}`
       )
       .then((res) => {
         setCardMovies(res.data.results);
         setFilterd(res.data.results);
       })
       .catch((err) => console.log(err));
-  }, [pageNum]);
-
+  }, [pageNumberFromStore]);
 
 
   useEffect(() => {
+    console.log(itemsFromStore);
     axios
       .get(
-        `https://api.themoviedb.org/3/movie/popular?api_key=edd8bc035ccbe239e18b997fcf30f067&page=1`
+        `https://api.themoviedb.org/3/movie/popular?api_key=edd8bc035ccbe239e18b997fcf30f067&page=${pageNumberFromStore}`
       )
       .then((res) => {
         setCardMovies(res.data.results);
@@ -50,19 +56,71 @@ setPageNum(num);
   }, []);
 
 
+  let [counter, setCounter2] = React.useState(counterFromStore);
 
 
-  const projectCard = filtered.map((item, id) => {
+  const containsObject=(obj, list)=> {
+    for (let i = 0; i < list.length; i++) {
+        if (list[i] === obj) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+
+  const cahngeisDone = (item, index) => {
+    if (!containsObject(item,itemsFromStore)) {
+
+      setCounter2((counter += 1));
+      dispatch(setCounter(counter));
+
+      dispatch(setItems([...itemsFromStore, item]));
+
+
+
+    } else if (itemsFromStore.includes(item)) {
+      setCounter2((counter -= 1));
+      dispatch(setCounter(counter));
+
+      let movies = itemsFromStore.filter((movie) => {
+        return movie.id !== item.id;
+      });
+
+      dispatch(setItems(movies));
+    }
+  };
+
+  const projectCard = filtered.map((item, index) => {
     return (
-      <div key={id} className="mb-5 col-sm-12 col-md-4 col-lg-4">
+      <div key={index} className="mb-5 col-sm-12 col-md-4 col-lg-4">
         <div className="card position-relative h-100">
+          <i
+            onClick={() => {
+              cahngeisDone(item, index);
+            }}
+            style={{
+              right: 0,
+              fontSize: "50px",
+              color: "#FFD700",
+              cursor: "pointer",
+              marginRight: "3%",
+            }}
+            className={`bi bi-star${
+              containsObject(item,itemsFromStore) ? "-fill" : ""
+            } position-absolute`}
+          ></i>
+
           <div
-            className="position-absolute m-2"
+            className="position-absolute"
             style={{
               backgroundColor: "#ffee00",
               width: "20%",
               borderRadius: "25px",
               border: "2px solid red",
+              marginTop: "20px",
+              marginLeft: "3%",
             }}
           >
             {item.vote_average}
@@ -87,22 +145,15 @@ setPageNum(num);
 
   return (
     <>
-      <div
-        className="text-center mt-5"
-      >
-        <SearchComponent 
-        
-        searchTable={searchTable} />
+      <div className="text-center mt-5">
+        <SearchComponent searchTable={searchTable} />
       </div>
       <section id="portfolio">
         <div className="py-3  container">
           <div className="row text-center mw-100 mh-100">{projectCard}</div>
         </div>
       </section>
-      <PagenationComponent
-      changePage={changePage}
-      
-      />
+      <PagenationComponent/>
     </>
   );
 }

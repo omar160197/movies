@@ -1,37 +1,39 @@
 import React, { useEffect } from "react"
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import { setPageNumber } from "../../store/acction/pageNumber";
 
-export default function PagenationComponent({changePage}){
-const [pageNum,setPageNum]=React.useState(1);
-const [isActive,setIsActive]=React.useState(false);
+export default function PagenationComponent(){
 
+const pageNumberFromStore =useSelector((state)=>state.cart.pageNumber)
+const [pageNum,setPageNum]=React.useState(pageNumberFromStore);
+const dispatch = useDispatch();
 
 const increseNum=()=>{
-    setIsActive(true)
+
 setPageNum(pageNum+1)
+dispatch(setPageNumber(pageNum))
 }
 
 const decreseNum=()=>{
-    if(pageNum > 1){
-        // setIsActive(true) 
         setPageNum(pageNum-1)
-    }else if(pageNum === 1){
-        setIsActive(false) 
-    }
+        dispatch(setPageNumber(pageNum))
+    
     }
 
 const changeNum=(num)=>{
 setPageNum(num);
+dispatch(setPageNumber(num))
 }
 
 useEffect(()=>{
-    changePage(pageNum)
+    dispatch(setPageNumber(pageNum))
 },[pageNum])
 
     return(
  <nav aria-label="Page navigation example " >
   <ul className="pagination justify-content-center w-100 m-3">
-    <li className={`page-item ${isActive?'':'disabled'}`}>
+    <li className={`page-item ${pageNum>1?'':'disabled'}`}>
       <Link className="page-link" onClick={decreseNum} to="/" >Previous</Link>
     </li>
     <li className={`page-item ${pageNum === 1?'active':''}`}><Link  onClick={()=>{changeNum(1)} } className="page-link" to="/">1</Link></li>

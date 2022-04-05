@@ -12,6 +12,6 @@ searchTable(keyword)
 
 
   return(
-    <input className="m-3" style={{width:'40%' ,height:'40px',border:"solid 3px blue"}} type='text'  value={keyword} onChange={textChanged}  placeholder="Search"/>
+    <input className="m-5" style={{width:'40%' ,height:'40px',border:"solid 3px blue"}} type='text'  value={keyword} onChange={textChanged}  placeholder="Search"/>
   )  
 }
